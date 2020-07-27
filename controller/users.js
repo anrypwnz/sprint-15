@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const NotFoundError = require('../errors/not-found-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const User = require('../models/user.js');
@@ -24,16 +25,16 @@ module.exports.createUser = (req, res) => {
   });
 };
 
-module.exports.getUser = (req, res) => {
+module.exports.getUser = (req, res, next) => {
   User.findById(req.params.id)
     .then((user) => {
       if (user != null) {
         res.send({ user });
       } else {
-        res.status(404).send({ message: 'Нет такого пользователя' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
     })
-    .catch((err) => res.status(400).send({ err, message: 'Произошла ошибка' }));
+    .catch((err) => next(err));
 };
 
 module.exports.getUsers = async (req, res) => {

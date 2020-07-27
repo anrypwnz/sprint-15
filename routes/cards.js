@@ -1,11 +1,33 @@
 const router = require('express').Router();
 const bodyParser = require('body-parser');
+const { celebrate, Joi } = require('celebrate');
 const auth = require('../middlewares/auth');
 const { createCard, getCard, delCard } = require('../controller/cards');
 
 router.use(bodyParser.json());
-router.get('/cards', auth, getCard);
-router.delete('/cards/:id', auth, delCard);
-router.post('/cards', auth, createCard);
+router.get('/cards', celebrate({
+  headers: Joi.object().keys({
+    authorization: Joi.string(),
+  }).unknown(true),
+}), auth, getCard);
+router.delete('/cards/:id', celebrate({
+  // валидируем параметры
+  params: Joi.object().keys({
+    id: Joi.string().alphanum().length(24),
+  }),
+  headers: Joi.object().keys({
+  // валидируем заголовки
+    authorization: Joi.string(),
+  }).unknown(true),
+  query: Joi.object().keys({
+  // валидируем query
+  }),
+}), auth, delCard);
+router.post('/cards', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    link: Joi.string().required().min(2).uri(),
+  }),
+}), auth, createCard);
 
 module.exports = router;
