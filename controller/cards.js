@@ -1,36 +1,45 @@
 const Card = require('../models/card.js');
+const NotFoundError = require('../errors/not-found-err');
+const NoRightsErr = require('../errors/no-rights-err');
 
-module.exports.getCard = (req, res) => {
+module.exports.getCard = (req, res, next) => {
   Card.find({})
     .then((data) => res.send({ data }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => next(err));
 };
 
-module.exports.delCard = async (req, res) => {
+module.exports.delCard = async (req, res, next) => {
   try {
     const card = await Card.findById(req.params.id);
     if (card == null) {
-      res.status(404).send({ message: 'Карточка не найдена' });
+      throw new NotFoundError('Карточка не найдена');
     // eslint-disable-next-line eqeqeq
     } else if (req.user._id == card.owner) {
       card.remove().then((deleted) => {
         res.status(200).send({ deleted });
       });
     } else {
-      res.status(403).send({ message: 'У вас нет прав на удаление этой карточки' });
+      throw new NoRightsErr('У вас нет прав на удаление этой карточки');
     }
   } catch (err) {
-    res.status(400).send({ message: err });
+    next(err);
   }
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = async (req, res, next) => {
   const {
     name, link,
   } = req.body;
-  Card.create({
+  const createdCard = await Card.create({
     name, link, owner: req.user._id, likes: [],
-  })
-    .then((data) => res.send({ data }))
-    .catch((err) => res.status(400).send({ message: err }));
+  });
+  if (createdCard) {
+    try {
+      res.send({ createdCard });
+    } catch (err) {
+      next(err);
+    }
+  } else {
+    throw new NoRightsErr('Невозможно создать карточку');
+  }
 };

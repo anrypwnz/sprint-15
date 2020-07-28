@@ -24,15 +24,15 @@ mongoose.connection.on('error', (err) => {
   process.exit(1);
 });
 
+app.use(requestLogger);
+app.use(cards);
+app.use(users);
+
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Сервер сейчас упадёт');
   }, 0);
 });
-
-app.use(requestLogger);
-app.use(cards);
-app.use(users);
 
 app.all('*', (req, res, next) => {
   res.status(404).send({ 'message': 'Запрашиваемый ресурс не найден' });
@@ -41,6 +41,7 @@ app.all('*', (req, res, next) => {
 
 app.use(errorLogger);
 app.use(errors());
+
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({

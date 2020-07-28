@@ -3,7 +3,7 @@
 ### Адреса для входа на портал:
 `130.193.38.126` - IP adress
 
-[mesto-app.ml](https://www.mesto-app.ml)
+[https://www.mesto-app.ml](https://www.mesto-app.ml)
 
 ### Как развернуть проект
 `npm run start` - развернуть сервер
