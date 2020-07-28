@@ -24,6 +24,12 @@ mongoose.connection.on('error', (err) => {
   process.exit(1);
 });
 
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
 app.use(requestLogger);
 app.use(cards);
 app.use(users);

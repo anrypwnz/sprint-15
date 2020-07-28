@@ -11,16 +11,13 @@ router.get('/cards', celebrate({
   }).unknown(true),
 }), auth, getCard);
 router.delete('/cards/:id', celebrate({
-  // валидируем параметры
   params: Joi.object().keys({
     id: Joi.string().alphanum().length(24),
   }),
   headers: Joi.object().keys({
-  // валидируем заголовки
     authorization: Joi.string(),
   }).unknown(true),
   query: Joi.object().keys({
-  // валидируем query
   }),
 }), auth, delCard);
 router.post('/cards', celebrate({
