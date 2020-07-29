@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const NotFoundError = require('../errors/not-found-err');
 const ConflictErr = require('../errors/conflict-err');
 const BadRequestErr = require('../errors/bad-request-err');
+const UnathorizedErr = require('../errors/unathorized-err');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const User = require('../models/user.js');
@@ -22,7 +23,7 @@ module.exports.createUser = async (req, res, next) => {
           .then((hash) => User.create({
             name, about, avatar, email, password: hash,
           }))
-          .then((user) => res.send(`Пользователь ${user.name} с почтой ${user.email} успешно зарегистрирован.`))
+          .then((user) => res.send({ 'message': `Пользователь ${user.name} с почтой ${user.email} успешно зарегистрирован.` }))
           .catch((err) => next(err));
       }
     } catch (e) {
@@ -52,14 +53,14 @@ module.exports.getUsers = async (req, res, next) => {
   }
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'secret-key', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch((err) => {
-      res.status(401).send({ err: err.message });
+    .catch(() => {
+      next(new UnathorizedErr('Ошибка авторизации'));
     });
 };

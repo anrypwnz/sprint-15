@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const bodyParser = require('body-parser');
 const { celebrate, Joi } = require('celebrate');
+const validator = require('validator');
 
 const auth = require('../middlewares/auth');
 
@@ -31,11 +32,22 @@ router.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().required().min(2).uri(),
+    avatar: Joi.string().required().min(2).custom((value) => {
+      if (!validator.isURL(value)) {
+        throw new Error('incorrect URL');
+      }
+      return value;
+    }),
     email: Joi.string().required().min(2).email(),
     password: Joi.string().required().min(2).max(30),
   }),
 }), createUser);
-router.post('/signin', login);
+
+router.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().min(2).email(),
+    password: Joi.string().required().min(2).max(30),
+  }),
+}), login);
 
 module.exports = router;

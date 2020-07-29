@@ -30,16 +30,13 @@ module.exports.createCard = async (req, res, next) => {
   const {
     name, link,
   } = req.body;
-  const createdCard = await Card.create({
-    name, link, owner: req.user._id, likes: [],
-  });
-  if (createdCard) {
-    try {
-      res.send({ createdCard });
-    } catch (err) {
-      next(err);
-    }
-  } else {
-    throw new NoRightsErr('Невозможно создать карточку');
+  try {
+    Card.create({
+      name, link, owner: req.user._id, likes: [],
+    })
+      .then((card) => res.send({ card }))
+      .catch(() => { throw new NoRightsErr('Невозможно создать карточку'); });
+  } catch (err) {
+    next();
   }
 };

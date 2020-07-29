@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const bodyParser = require('body-parser');
 const { celebrate, Joi } = require('celebrate');
+const validator = require('validator');
 const auth = require('../middlewares/auth');
 const { createCard, getCard, delCard } = require('../controller/cards');
 
@@ -23,7 +24,12 @@ router.delete('/cards/:id', celebrate({
 router.post('/cards', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().min(2).uri(),
+    link: Joi.string().required().min(2).custom((value) => {
+      if (!validator.isURL(value)) {
+        throw new Error('incorrect URL');
+      }
+      return value;
+    }),
   }),
 }), auth, createCard);
 
