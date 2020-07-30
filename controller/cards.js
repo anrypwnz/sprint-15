@@ -26,17 +26,13 @@ module.exports.delCard = async (req, res, next) => {
   }
 };
 
-module.exports.createCard = async (req, res, next) => {
+module.exports.createCard = (req, res, next) => {
   const {
     name, link,
   } = req.body;
-  try {
-    Card.create({
-      name, link, owner: req.user._id, likes: [],
-    })
-      .then((card) => res.send({ card }))
-      .catch(() => { throw new NoRightsErr('Невозможно создать карточку'); });
-  } catch (err) {
-    next();
-  }
+  Card.create({
+    name, link, owner: req.user._id, likes: [],
+  })
+    .then((card) => res.send({ card }))
+    .catch((err) => next(err));
 };
